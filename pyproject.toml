@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+sections = ["FUTURE", "STDLIB", "DJANGO", "FIRSTPARTY", "THIRDPARTY", "LOCALFOLDER"]
+known_first_party = "project"
+known_django = "django"
