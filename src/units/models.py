@@ -1,3 +1,4 @@
+from django.contrib import admin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -27,6 +28,39 @@ class University(AbstractUnit):
         verbose_name_plural = _("uczelnie")
         ordering = ("id",)
 
+    class Manager(models.Manager):
+        """A class customizing default model's manager."""
+
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .order_by("name")
+                .annotate(
+                    faculty_count=models.Count(
+                        "faculties",
+                        distinct=True,
+                    ),
+                    department_count=models.Count(
+                        "faculties__departments",
+                        distinct=True,
+                    ),
+                )
+            )
+
+    objects = Manager()
+
+    @admin.display(description=_("Wydziały"), ordering="faculty_count")
+    def get_faculty_count(self):
+        """Return the number of faculties related to the object."""
+        return self.faculty_count
+
+    @admin.display(description=_("Katedry"), ordering="department_count")
+    def get_department_count(self):
+        """Return the number of departments related to all faculties of the object."""
+        return self.department_count
+
 
 class Faculty(AbstractUnit):
     """A class to represent faculties."""
@@ -38,10 +72,34 @@ class Faculty(AbstractUnit):
         related_name="faculties",
     )
 
+    class Manager(models.Manager):
+        """A class customizing default model's manager."""
+
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .order_by("name")
+                .annotate(
+                    department_count=models.Count(
+                        "departments",
+                        distinct=True,
+                    ),
+                )
+            )
+
+    objects = Manager()
+
     class Meta:
         verbose_name = _("wydział")
         verbose_name_plural = _("wydziały")
         ordering = ("id",)
+
+    @admin.display(description=_("Katedry"), ordering="department_count")
+    def get_department_count(self):
+        """Return the number of departments related to the object."""
+        return self.department_count
 
 
 class Department(AbstractUnit):

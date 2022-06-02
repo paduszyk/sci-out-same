@@ -32,7 +32,7 @@ class UniversityAdmin(admin.ModelAdmin):
     readonly_fields = ("id",)
     inlines = [FacultyInline]
 
-    list_display = ("id", "name", "abbr")
+    list_display = ("id", "name", "abbr", "get_faculty_count", "get_department_count")
     search_fields = ("name", "abbr")
 
 
@@ -50,7 +50,7 @@ class FacultyAdmin(admin.ModelAdmin):
     readonly_fields = ("id",)
     inlines = [DepartmentInline]
 
-    list_display = ("id", "name", "abbr", "university")
+    list_display = ("id", "name", "abbr", "university", "get_department_count")
     search_fields = ("name", "abbr", "university__name", "university__abbr")
 
 
@@ -79,5 +79,5 @@ class DepartmentAdmin(admin.ModelAdmin):
 
     @admin.display(description=University._meta.verbose_name.capitalize())
     def get_university(self, obj):
-        """Return university of the department object faculty."""
+        """Return university of the department object's faculty."""
         return obj.faculty.university
