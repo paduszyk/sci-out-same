@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.forms",
+    # 3rd party apps
+    "bootstrap5",
     # Project apps
     "accounts",
     "units",

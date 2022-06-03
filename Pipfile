@@ -9,6 +9,7 @@ python-dotenv = "*"
 mysqlclient = "*"
 pillow = "*"
 django-cleanup = "*"
+django-bootstrap-v5 = "*"
 
 [dev-packages]
 pre-commit = "*"
