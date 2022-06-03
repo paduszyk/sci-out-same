@@ -4,7 +4,14 @@ from django.utils.translation import gettext_lazy as _
 from units.models import Department
 
 from ..forms import DegreeAdminForm, EmployeeAdminForm, StatusAdminForm
-from ..models import Degree, Discipline, Employee, Status
+from ..models import Degree, Discipline, Employee, Employment, Status
+
+
+class EmploymentInline(admin.TabularInline):
+    """A class to represent the employment inline form."""
+
+    model = Employment
+    extra = 0
 
 
 @admin.register(Status)
@@ -53,6 +60,7 @@ class EmployeeAdmin(admin.ModelAdmin):
         (_("Dane dodatkowe"), {"fields": ("status",)}),
     )
     readonly_fields = ("id",)
+    inlines = (EmploymentInline,)
 
     list_display = (
         "id",

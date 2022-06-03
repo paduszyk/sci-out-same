@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 
 from units.models import Department
 
+from .employees import Employee
+
 
 class Group(models.Model):
     """A class to represent groups of positions."""
@@ -75,6 +77,11 @@ class Position(models.Model):
 class Employment(models.Model):
     """A class to represent employments."""
 
+    employee = models.OneToOneField(
+        Employee,
+        on_delete=models.CASCADE,
+        verbose_name=Employee._meta.verbose_name,
+    )
     position = models.ForeignKey(
         Position,
         on_delete=models.SET_NULL,
