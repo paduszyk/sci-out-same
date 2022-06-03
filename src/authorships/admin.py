@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from .forms import AuthorAdminForm, AuthorshipAdminForm
-from .models import Author, Authorship
+from .forms import AuthorAdminForm, AuthorshipAdminForm, AuthorshipTypeAdminForm
+from .models import Author, Authorship, AuthorshipType
 
 
 @admin.register(Author)
@@ -31,6 +31,22 @@ class AuthorAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(AuthorshipType)
+class AuthorshipTypeAdmin(admin.ModelAdmin):
+    """Admin options for the AuthorshipType model."""
+
+    form = AuthorshipTypeAdminForm
+
+    fieldsets = (
+        (None, {"fields": ("id",)}),
+        (_("Dane podstawowe"), {"fields": ("name", "abbr")}),
+    )
+    readonly_fields = ("id",)
+
+    list_display = ("id", "name", "abbr", "get_authorship_count")
+    search_fields = ("name", "abbr")
+
+
 @admin.register(Authorship)
 class AuthorshipAdmin(admin.ModelAdmin):
     """Admin options for the Authorship model."""
@@ -39,8 +55,8 @@ class AuthorshipAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {"fields": ("id",)}),
-        (_("Dane podstawowe"), {"fields": ("author",)}),
-        (_("Dane dodatkowe"), {"fields": ("order",)}),
+        (_("Dane podstawowe"), {"fields": ("author", "type", "department")}),
+        (_("Dane dodatkowe"), {"fields": ("order", "contribution", "corresponding")}),
         (_("Obiekt"), {"fields": ("content_type", "object_id")}),
     )
     readonly_fields = ("id",)
@@ -51,11 +67,25 @@ class AuthorshipAdmin(admin.ModelAdmin):
         "object_id",
         "order",
         "get_alias",
+        "type_abbr",
         "by_employee",
+        "department_abbr",
     )
-    search_fields = ("author__alias",)
+    search_fields = ("author__alias", "type__name", "type__abbr")
 
     @admin.display(description=_("Typ obiektu"))
     def content_type_name(self, obj):
         """Return 'name' field of the ContentType object."""
         return obj.content_type.name
+
+    @admin.display(description=_("Typ"), ordering="type__abbr")
+    def type_abbr(self, obj):
+        """Return abbreviation of the authorship type related to the object."""
+        if obj.type:
+            return obj.type.abbr
+
+    @admin.display(description=_("Katedra"))
+    def department_abbr(self, obj):
+        """Return abbreviation of the department related to the object."""
+        if obj.department:
+            return obj.department.abbr

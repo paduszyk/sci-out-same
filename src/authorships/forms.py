@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 
-from .models import Author, Authorship
+from .models import Author, Authorship, AuthorshipType
 
 
 class AuthorAdminForm(forms.ModelForm):
@@ -9,6 +9,14 @@ class AuthorAdminForm(forms.ModelForm):
 
     class Meta:
         model = Author
+        fields = "__all__"
+
+
+class AuthorshipTypeAdminForm(forms.ModelForm):
+    """A class to represent admin change form of the Authorship model."""
+
+    class Meta:
+        model = AuthorshipType
         fields = "__all__"
 
 

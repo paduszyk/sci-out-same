@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from employees.models import Employee
+from units.models import Department
 
 
 class Author(models.Model):
@@ -49,15 +50,64 @@ class Author(models.Model):
         return self.authorship_count
 
 
+class AuthorshipType(models.Model):
+    """A class to represent a type of an author."""
+
+    name = models.CharField(_("nazwa"), max_length=255)
+    abbr = models.CharField(_("skrót"), max_length=255)
+
+    class Meta:
+        verbose_name = _("typ autorstwa")
+        verbose_name_plural = _("typ autorstwa")
+        ordering = ("id",)
+
+    class Manager(models.Manager):
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(authorship_count=models.Count("authorships", distinct=True))
+            )
+
+    objects = Manager()
+
+    def __str__(self):
+        return self.name
+
+    @admin.display(description=_("Autorstwa"), ordering="authorship_count")
+    def get_authorship_count(self):
+        """Return the number of authorships related to the object."""
+        return self.authorship_count
+
+
 class Authorship(models.Model):
     """A class to represent authorships."""
 
     order = models.PositiveSmallIntegerField(_("numer"), default=1)
+    contribution = models.PositiveSmallIntegerField(_("udział (%)"), default=0)
+    corresponding = models.BooleanField(_("autor korespondencyjny"), default=False)
     author = models.ForeignKey(
         Author,
         on_delete=models.CASCADE,
         verbose_name=Author._meta.verbose_name,
         related_name="authorships",
+    )
+    type = models.ForeignKey(
+        AuthorshipType,
+        on_delete=models.SET_NULL,
+        verbose_name=AuthorshipType._meta.verbose_name,
+        related_name="authorships",
+        blank=True,
+        null=True,
+    )
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        verbose_name=Department._meta.verbose_name,
+        related_name="authorships",
+        blank=True,
+        null=True,
     )
     content_type = models.ForeignKey(
         ContentType,
@@ -71,6 +121,9 @@ class Authorship(models.Model):
         verbose_name = _("autorstwo")
         verbose_name_plural = _("autorstwa")
         ordering = ("id",)
+
+    def __str__(self):
+        return f"{self.author} ({self.content_type.name}, ID={self.object_id})"
 
     @admin.display(description=_("Alias"), ordering="author__alias")
     def get_alias(self):
