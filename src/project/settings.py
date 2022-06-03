@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "accounts",
     "units",
     "employees",
+    # 3rd party apps
+    "django_cleanup.apps.CleanupConfig",
 ]
 
 MIDDLEWARE = [
