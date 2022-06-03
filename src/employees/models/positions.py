@@ -18,8 +18,43 @@ class Group(models.Model):
         verbose_name_plural = _("grupy pracowników")
         ordering = ("id",)
 
+    class Manager(models.Manager):
+        """A class customizing default model's manager."""
+
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(
+                    subgroup_count=models.Count("subgroups", distinct=True),
+                    position_count=models.Count("subgroups__position", distinct=True),
+                    employee_count=models.Count(
+                        "subgroups__employments__employee",
+                        distinct=True,
+                    ),
+                )
+            )
+
+    objects = Manager()
+
     def __str__(self):
         return self.name
+
+    @admin.display(description=_("Podgrupy"), ordering="subgroup_count")
+    def get_subgroup_count(self):
+        """Return the number of subgroups related to the object."""
+        return self.subgroup_count
+
+    @admin.display(description=_("Stanowiska"), ordering="position_count")
+    def get_position_count(self):
+        """Return the number of positions related to the object."""
+        return self.position_count
+
+    @admin.display(description=_("Pracownicy"), ordering="employee_count")
+    def get_employee_count(self):
+        """Return the number of employees related to the object."""
+        return self.employee_count
 
 
 class Subgroup(models.Model):
@@ -39,8 +74,34 @@ class Subgroup(models.Model):
         verbose_name_plural = _("podgrupy pracowników")
         ordering = ("id",)
 
+    class Manager(models.Manager):
+        """A class customizing default model's manager."""
+
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(
+                    position_count=models.Count("position", distinct=True),
+                    employee_count=models.Count("employments__employee", distinct=True),
+                )
+            )
+
+    objects = Manager()
+
     def __str__(self):
         return f"{self.name} ({self.group})"
+
+    @admin.display(description=_("Stanowiska"), ordering="position_count")
+    def get_position_count(self):
+        """Return the number of positions related to the object."""
+        return self.position_count
+
+    @admin.display(description=_("Pracownicy"), ordering="employee_count")
+    def get_employee_count(self):
+        """Return the number of employees related to the object."""
+        return self.employee_count
 
 
 class Position(models.Model):
@@ -57,6 +118,21 @@ class Position(models.Model):
         verbose_name_plural = _("stanowiska")
         ordering = ("id",)
 
+    class Manager(models.Manager):
+        """A class customizing default model's manager."""
+
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(
+                    employee_count=models.Count("employments__employee", distinct=True),
+                )
+            )
+
+    objects = Manager()
+
     def __str__(self):
         return self.name
 
@@ -72,6 +148,11 @@ class Position(models.Model):
     def is_classified(self):
         """Check if the position has unique group."""
         return self.get_groups().count() == 1
+
+    @admin.display(description=_("Pracownicy"), ordering="employee_count")
+    def get_employee_count(self):
+        """Return the number of employees related to the object."""
+        return self.employee_count
 
 
 class Employment(models.Model):

@@ -18,6 +18,19 @@ class Status(models.Model):
         verbose_name_plural = _("statusy")
         ordering = ("id",)
 
+    class Manager(models.Manager):
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(
+                    employee_count=models.Count("employees", distinct=True),
+                )
+            )
+
+    objects = Manager()
+
     def __str__(self):
         return f"{self.name} ({self.abbr})"
 
@@ -31,6 +44,19 @@ class Degree(models.Model):
         verbose_name = _("stopień/tytuł naukowy")
         verbose_name_plural = _("stopnie i tytuły naukowe")
         ordering = ("abbr",)
+
+    class Manager(models.Manager):
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(
+                    employee_count=models.Count("employees", distinct=True),
+                )
+            )
+
+    objects = Manager()
 
     def __str__(self):
         return self.abbr

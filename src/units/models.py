@@ -36,14 +36,14 @@ class University(AbstractUnit):
             return (
                 super()
                 .get_queryset()
-                .order_by("name")
                 .annotate(
-                    faculty_count=models.Count(
-                        "faculties",
-                        distinct=True,
-                    ),
+                    faculty_count=models.Count("faculties", distinct=True),
                     department_count=models.Count(
                         "faculties__departments",
+                        distinct=True,
+                    ),
+                    employee_count=models.Count(
+                        "faculties__departments__employments__employee",
                         distinct=True,
                     ),
                 )
@@ -60,6 +60,11 @@ class University(AbstractUnit):
     def get_department_count(self):
         """Return the number of departments related to all faculties of the object."""
         return self.department_count
+
+    @admin.display(description=_("Pracownicy"), ordering="employee_count")
+    def get_employee_count(self):
+        """Return the number of employees related to the object."""
+        return self.employee_count
 
 
 class Faculty(AbstractUnit):
@@ -80,10 +85,10 @@ class Faculty(AbstractUnit):
             return (
                 super()
                 .get_queryset()
-                .order_by("name")
                 .annotate(
-                    department_count=models.Count(
-                        "departments",
+                    department_count=models.Count("departments", distinct=True),
+                    employee_count=models.Count(
+                        "departments__employments__employee",
                         distinct=True,
                     ),
                 )
@@ -101,6 +106,11 @@ class Faculty(AbstractUnit):
         """Return the number of departments related to the object."""
         return self.department_count
 
+    @admin.display(description=_("Pracownicy"), ordering="employee_count")
+    def get_employee_count(self):
+        """Return the number of employees related to the object."""
+        return self.employee_count
+
 
 class Department(AbstractUnit):
     """A class to represent departments."""
@@ -116,3 +126,23 @@ class Department(AbstractUnit):
         verbose_name = _("katedra")
         verbose_name_plural = _("katedry")
         ordering = ("id",)
+
+    class Manager(models.Manager):
+        """A class customizing default model's manager."""
+
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(
+                    employee_count=models.Count("employments__employee", distinct=True),
+                )
+            )
+
+    objects = Manager()
+
+    @admin.display(description=_("Pracownicy"), ordering="employee_count")
+    def get_employee_count(self):
+        """Return the number of employees related to the object."""
+        return self.employee_count

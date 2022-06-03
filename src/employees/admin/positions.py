@@ -31,7 +31,14 @@ class GroupAdmin(admin.ModelAdmin):
     readonly_fields = ("id",)
     inlines = (SubgroupInline,)
 
-    list_display = ("id", "name", "abbr")
+    list_display = (
+        "id",
+        "name",
+        "abbr",
+        "get_subgroup_count",
+        "get_position_count",
+        "get_employee_count",
+    )
     search_fields = ("name", "abbr")
 
 
@@ -48,7 +55,14 @@ class SubgroupAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("id",)
 
-    list_display = ("id", "name", "abbr", "group")
+    list_display = (
+        "id",
+        "name",
+        "abbr",
+        "group",
+        "get_position_count",
+        "get_employee_count",
+    )
     search_fields = ("name", "abbr", "group__name", "group__abbr")
 
 
@@ -65,7 +79,14 @@ class PositionAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("id",)
 
-    list_display = ("id", "name", "group_list", "subgroup_list", "is_classified")
+    list_display = (
+        "id",
+        "name",
+        "group_list",
+        "subgroup_list",
+        "is_classified",
+        "get_employee_count",
+    )
     search_fields = (
         "name",
         "subgroups__name",

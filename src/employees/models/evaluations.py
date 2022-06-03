@@ -21,7 +21,13 @@ class Domain(models.Model):
             return (
                 super()
                 .get_queryset()
-                .annotate(discipline_count=models.Count("disciplines", distinct=True))
+                .annotate(
+                    discipline_count=models.Count("disciplines", distinct=True),
+                    employee_count=models.Count(
+                        "disciplines__employees",
+                        distinct=True,
+                    ),
+                )
             )
 
     objects = Manager()
@@ -33,6 +39,11 @@ class Domain(models.Model):
     def get_discipline_count(self):
         """Return the number of disciplines related to the object."""
         return self.discipline_count
+
+    @admin.display(description=_("Pracownicy"), ordering="employee_count")
+    def get_employee_count(self):
+        """Return the number of employees related to the object."""
+        return self.employee_count
 
 
 class Discipline(models.Model):
@@ -52,5 +63,26 @@ class Discipline(models.Model):
         verbose_name_plural = _("dyscypliny")
         ordering = ("id",)
 
+    class Manager(models.Manager):
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(
+                    employee_count=models.Count(
+                        "employees",
+                        distinct=True,
+                    )
+                )
+            )
+
+    objects = Manager()
+
     def __str__(self):
         return f"{self.name} ({self.domain})"
+
+    @admin.display(description=_("Pracownicy"), ordering="employee_count")
+    def get_employee_count(self):
+        """Return the number of employees related to the object."""
+        return self.employee_count

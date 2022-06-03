@@ -25,7 +25,7 @@ class DomainAdmin(admin.ModelAdmin):
     readonly_fields = ("id",)
     inlines = (DisciplineInline,)
 
-    list_display = ("id", "name", "get_discipline_count")
+    list_display = ("id", "name", "get_discipline_count", "get_employee_count")
     search_fields = ("name",)
 
 
@@ -42,5 +42,5 @@ class DisciplineAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("id",)
 
-    list_display = ("id", "name", "abbr", "domain")
+    list_display = ("id", "name", "abbr", "domain", "get_employee_count")
     search_fields = ("name", "abbr", "domain__name")
