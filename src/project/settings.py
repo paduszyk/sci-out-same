@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "employees",
     "authorships",
     "articles",
+    "extra_commands",
     # 3rd party apps
     "django_cleanup.apps.CleanupConfig",
 ]

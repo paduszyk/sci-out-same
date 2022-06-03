@@ -15,6 +15,8 @@ django-bootstrap-v5 = "*"
 pre-commit = "*"
 black = "*"
 ipython = "*"
+pandas = "*"
+openpyxl = "*"
 
 [requires]
 python_version = "3.9"
