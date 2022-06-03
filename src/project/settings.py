@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.forms",
     # Project apps
+    "accounts",
     "units",
     "employees",
 ]
