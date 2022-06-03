@@ -80,6 +80,7 @@ class EmployeeAdmin(admin.ModelAdmin):
         "discipline_abbr",
         "is_employed",
         "department_abbr",
+        "get_authorship_count",
     )
     search_fields = ("id", "user__last_name", "user__first_name")
 
