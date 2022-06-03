@@ -45,9 +45,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.forms",
+    # 3rd party apps
+    "bootstrap5",
     # Project apps
+    "accounts",
     "units",
     "employees",
+    # 3rd party apps
+    "django_cleanup.apps.CleanupConfig",
 ]
 
 MIDDLEWARE = [
@@ -128,8 +133,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Users & authentication settings
 
-AUTH_USER_MODEL = "auth.User"
+AUTH_USER_MODEL = "accounts.User"
 
+LOGIN_URL = "accounts:login"
+
+LOGIN_REDIRECT_URL = "home"
+
+LOGOUT_REDIRECT_URL = "home"
 
 # Session settings
 

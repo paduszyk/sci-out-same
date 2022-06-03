@@ -1,0 +1,47 @@
+{% load i18n static bootstrap5 %}
+
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
+
+<!DOCTYPE html>
+<html
+  lang="{{ LANGUAGE_CODE|default:"pl" }}"
+  dir="{{ LANGUAGE_BIDI|yesno:"rtl,ltr,auto" }}"
+>
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    http-equiv="X-UA-Compatible"
+    content="IE=edge"
+  >
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>
+    {% block title %}{% endblock %}
+    {% block subtitle %}{% endblock %}
+  </title>
+
+  {# Bootstrap 5 CSS #}
+  {% bootstrap_css %}
+</head>
+
+<body class="d-flex flex-column vh-100">
+  <header class="mt-0">
+    {% bootstrap_messages %}
+  </header>
+  <main class="my-3">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+  <footer class="mb-0">
+  </footer>
+
+  {# Bootstrap 5 JavaScript #}
+  {% bootstrap_javascript %}
+</body>
+
+</html>
