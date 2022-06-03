@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% load i18n bootstrap5 %}
+
+{% block subtitle %}
+{% translate "Logowanie" %}
+{% endblock %}
+
+{% block content %}
+{% translate "Zaloguj się" as submit_button_content %}
+<form
+  method="post"
+  novalidate
+>
+  {% csrf_token %}
+  {% bootstrap_form form exclude="remember_me" show_label=False %}
+  {% bootstrap_field form.remember_me show_label=True %}
+  {% bootstrap_button button_type="submit" content=submit_button_content %}
+</form>
+{% endblock %}

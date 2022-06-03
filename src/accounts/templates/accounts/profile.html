@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% load i18n bootstrap5 %}
+
+{% block subtitle %}
+{% translate "Profil użytkownika" %} &raquo; {{ user.get_full_name }} &laquo;
+{% endblock %}
+
+{% block content %}
+{% translate "Zapisz" as submit_button_content %}
+<form
+  method="post"
+  enctype="multipart/form-data"
+  novalidate
+>
+  {% csrf_token %}
+  {% bootstrap_form form %}
+  {% bootstrap_button button_type="submit" content=submit_button_content %}
+</form>
+{% endblock %}
