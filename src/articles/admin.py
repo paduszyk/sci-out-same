@@ -1,8 +1,18 @@
 from django.contrib import admin
+from django.contrib.contenttypes.admin import GenericTabularInline
 from django.utils.translation import gettext_lazy as _
+
+from authorships.models import Authorship
 
 from .forms import ArticleAdminForm, JournalAdminForm
 from .models import Article, Journal
+
+
+class AuthorshipInline(GenericTabularInline):
+    """A class to represent authorship inline form."""
+
+    model = Authorship
+    extra = 0
 
 
 @admin.register(Journal)
@@ -69,6 +79,7 @@ class ArticleAdmin(admin.ModelAdmin):
         (_("Ewaluacja"), {"fields": ("impact_factor", "points", "locked")}),
     )
     readonly_fields = ("id", "impact_factor", "points")
+    inlines = (AuthorshipInline,)
 
     list_display = ("id", "title", "journal_abbr", "year", "locked")
     search_fields = (
