@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
+from authorships.models import Author
 from units.models import Department
 
 from ..forms import DegreeAdminForm, EmployeeAdminForm, StatusAdminForm
@@ -11,6 +12,13 @@ class EmploymentInline(admin.TabularInline):
     """A class to represent the employment inline form."""
 
     model = Employment
+    extra = 0
+
+
+class AuthorInline(admin.TabularInline):
+    """A class to represent the author inline form."""
+
+    model = Author
     extra = 0
 
 
@@ -60,7 +68,7 @@ class EmployeeAdmin(admin.ModelAdmin):
         (_("Dane dodatkowe"), {"fields": ("status",)}),
     )
     readonly_fields = ("id",)
-    inlines = (EmploymentInline,)
+    inlines = (EmploymentInline, AuthorInline)
 
     list_display = (
         "id",
@@ -72,6 +80,7 @@ class EmployeeAdmin(admin.ModelAdmin):
         "discipline_abbr",
         "is_employed",
         "department_abbr",
+        "get_authorship_count",
     )
     search_fields = ("id", "user__last_name", "user__first_name")
 

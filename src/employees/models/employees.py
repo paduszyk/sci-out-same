@@ -109,6 +109,25 @@ class Employee(models.Model):
         verbose_name_plural = _("pracownicy")
         ordering = ("id",)
 
+    class Manager(models.Manager):
+        def get_queryset(self):
+            """Get the annotated queryset."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(
+                    authorship_count=models.Count(
+                        "authors__authorships",
+                        filter=models.Q(
+                            authors__authorships__content_type__model="article",
+                        ),
+                        distinct=True,
+                    ),
+                )
+            )
+
+    objects = Manager()
+
     def __str__(self):
         return self.user.get_full_name()
 
@@ -126,3 +145,8 @@ class Employee(models.Model):
     def is_employed(self):
         """Return True if an employee has an employment associated."""
         return self.employment is not None
+
+    @admin.display(description=_("Autorstwa"), ordering="authorship_count")
+    def get_authorship_count(self):
+        """Return the number of authorships related to the object."""
+        return self.authorship_count
