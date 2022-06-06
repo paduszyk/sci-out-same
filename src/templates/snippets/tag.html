@@ -1,0 +1,1 @@
+<{{ name }}{% for attr, value in attrs.items %} {{ attr }}="{{ value }}"{% endfor %}>{% if closing_tag %}{{ content|default_if_none:"" }}</{{ name }}>{% endif %}
