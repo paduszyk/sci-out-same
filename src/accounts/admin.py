@@ -26,5 +26,14 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = base_fieldsets
     readonly_fields = ("id",)
 
-    list_display = ("id", "username", "email", "first_name", "last_name", "is_staff")
-    list_display_links = ("id", "username")
+    list_display = (
+        "id",
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "is_staff",
+        "has_employee",
+    )
+    list_display_links = ("id",)
+    ordering = ("id",)
