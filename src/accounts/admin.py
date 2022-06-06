@@ -39,6 +39,7 @@ class UserAdmin(BaseUserAdmin):
         "has_employee",
     )
     list_display_links = ("id",)
+    list_filter = ()
     ordering = ("id",)
 
     @admin.display(description=_("Zdjęcie"))
