@@ -5,4 +5,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # 3rd party apps URLs
     path("__debug__/", include("debug_toolbar.urls")),
+    # Project apps URLs
+    path("units/", include("units.urls")),
 ]
