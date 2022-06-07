@@ -12,6 +12,7 @@ mysqlclient = "*"
 pre-commit = "*"
 black = "*"
 ipython = "*"
+django-debug-toolbar = "*"
 
 [requires]
 python_version = "3.9"
