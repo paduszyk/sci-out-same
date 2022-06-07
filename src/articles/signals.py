@@ -17,6 +17,7 @@ def update_unlocked_articles(sender, instance, **kwargs):
     """
     unlocked_articles = Article.objects.filter(journal=instance, locked=False)
     for article in unlocked_articles:
+        article.clean()
         article.save()
 
 
@@ -26,7 +27,11 @@ def update_article_authors(sender, instance, **kwargs):
     if not instance.content_type == ContentType.objects.get_for_model(Article):
         return
 
-    article = Article.objects.get(pk=instance.object_id)
+    try:
+        article = Article.objects.get(pk=instance.object_id)
+    except Article.DoesNotExist:
+        return
+
     authors = article.get_authors()
 
     article.authors, article.author_count = (

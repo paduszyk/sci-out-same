@@ -9,7 +9,7 @@ from units.models import Department
 
 
 class Author(models.Model):
-    """A class to represent authors."""
+    """A class to represent the Author objects."""
 
     employee = models.ForeignKey(
         Employee,
@@ -28,11 +28,16 @@ class Author(models.Model):
 
     class Manager(models.Manager):
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
-                .annotate(authorship_count=models.Count("authorships", distinct=True))
+                .annotate(
+                    authorship_count=models.Count(
+                        "authorships",
+                        distinct=True,
+                    )
+                )
             )
 
     objects = Manager()
@@ -43,11 +48,6 @@ class Author(models.Model):
     def is_employed(self):
         """Return True if the author is also an employee."""
         return self.employee is not None
-
-    @admin.display(description=_("Autorstwa"), ordering="authorship_count")
-    def get_authorship_count(self):
-        """Return the number of authorships related to the object."""
-        return self.authorship_count
 
 
 class AuthorshipType(models.Model):
@@ -82,7 +82,7 @@ class AuthorshipType(models.Model):
 
 
 class Authorship(models.Model):
-    """A class to represent authorships."""
+    """A class to represent the Authorship objects."""
 
     order = models.PositiveSmallIntegerField(_("numer"), default=1)
     contribution = models.PositiveSmallIntegerField(_("udział (%)"), default=0)
@@ -120,17 +120,13 @@ class Authorship(models.Model):
     class Meta:
         verbose_name = _("autorstwo")
         verbose_name_plural = _("autorstwa")
-        ordering = ("id",)
+        ordering = ("order", "id")
 
     def __str__(self):
         return f"{self.author} ({self.content_type.name}, ID={self.object_id})"
 
+    @property
     @admin.display(description=_("Alias"), ordering="author__alias")
-    def get_alias(self):
+    def alias(self):
         """Return the author's alias."""
         return self.author.alias
-
-    @admin.display(description=_("Pracownik"), boolean=True)
-    def by_employee(self):
-        """Return True if the author is also an employee."""
-        return self.author.is_employed()

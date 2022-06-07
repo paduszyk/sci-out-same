@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
+from project.utils import related_model_count as count
+
 from .forms import AuthorAdminForm, AuthorshipAdminForm, AuthorshipTypeAdminForm
 from .models import Author, Authorship, AuthorshipType
 
@@ -21,7 +23,7 @@ class AuthorAdmin(admin.ModelAdmin):
         "id",
         "employee",
         "alias",
-        "get_authorship_count",
+        count(Authorship),
     )
     search_fields = (
         "alias",
@@ -43,7 +45,7 @@ class AuthorshipTypeAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("id",)
 
-    list_display = ("id", "name", "abbr", "get_authorship_count")
+    list_display = ("id", "name", "abbr", count(Authorship))
     search_fields = ("name", "abbr")
 
 
@@ -60,32 +62,29 @@ class AuthorshipAdmin(admin.ModelAdmin):
         (_("Obiekt"), {"fields": ("content_type", "object_id")}),
     )
     readonly_fields = ("id",)
+    autocomplete_fields = ("author",)
 
     list_display = (
         "id",
-        "content_type_name",
+        "content_type__name",
         "object_id",
         "order",
-        "get_alias",
-        "type_abbr",
-        "by_employee",
-        "department_abbr",
+        "alias",
+        "type__abbr",
+        "department__abbr",
     )
     search_fields = ("author__alias", "type__name", "type__abbr")
 
     @admin.display(description=_("Typ obiektu"))
-    def content_type_name(self, obj):
-        """Return 'name' field of the ContentType object."""
+    def content_type__name(self, obj):
         return obj.content_type.name
 
     @admin.display(description=_("Typ"), ordering="type__abbr")
-    def type_abbr(self, obj):
-        """Return abbreviation of the authorship type related to the object."""
+    def type__abbr(self, obj):
         if obj.type:
             return obj.type.abbr
 
     @admin.display(description=_("Katedra"))
-    def department_abbr(self, obj):
-        """Return abbreviation of the department related to the object."""
+    def department__abbr(self, obj):
         if obj.department:
             return obj.department.abbr
