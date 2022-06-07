@@ -5,13 +5,13 @@ from django.utils.translation import gettext_lazy as _
 
 class AbstractUnit(models.Model):
     """
-    A class to represent the abstracted units.
+    A class to represent the abstract unit objects.
 
     All other models in this module inherit from this class.
     """
 
     name = models.CharField(_("nazwa"), max_length=255)
-    abbr = models.CharField(_("skrót"), max_length=255, blank=True)
+    abbr = models.CharField(_("skrót"), max_length=255)
 
     class Meta:
         abstract = True
@@ -21,7 +21,7 @@ class AbstractUnit(models.Model):
 
 
 class University(AbstractUnit):
-    """A class to represent universities."""
+    """A class to represent the University objects."""
 
     class Meta:
         verbose_name = _("uczelnia")
@@ -29,15 +29,16 @@ class University(AbstractUnit):
         ordering = ("id",)
 
     class Manager(models.Manager):
-        """A class customizing default model's manager."""
-
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
                 .annotate(
-                    faculty_count=models.Count("faculties", distinct=True),
+                    faculty_count=models.Count(
+                        "faculties",
+                        distinct=True,
+                    ),
                     department_count=models.Count(
                         "faculties__departments",
                         distinct=True,
@@ -51,24 +52,9 @@ class University(AbstractUnit):
 
     objects = Manager()
 
-    @admin.display(description=_("Wydziały"), ordering="faculty_count")
-    def get_faculty_count(self):
-        """Return the number of faculties related to the object."""
-        return self.faculty_count
-
-    @admin.display(description=_("Katedry"), ordering="department_count")
-    def get_department_count(self):
-        """Return the number of departments related to all faculties of the object."""
-        return self.department_count
-
-    @admin.display(description=_("Pracownicy"), ordering="employee_count")
-    def get_employee_count(self):
-        """Return the number of employees related to the object."""
-        return self.employee_count
-
 
 class Faculty(AbstractUnit):
-    """A class to represent faculties."""
+    """A class to represent the Faculty objects."""
 
     university = models.ForeignKey(
         University,
@@ -78,15 +64,16 @@ class Faculty(AbstractUnit):
     )
 
     class Manager(models.Manager):
-        """A class customizing default model's manager."""
-
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
                 .annotate(
-                    department_count=models.Count("departments", distinct=True),
+                    department_count=models.Count(
+                        "departments",
+                        distinct=True,
+                    ),
                     employee_count=models.Count(
                         "departments__employments__employee",
                         distinct=True,
@@ -101,19 +88,9 @@ class Faculty(AbstractUnit):
         verbose_name_plural = _("wydziały")
         ordering = ("id",)
 
-    @admin.display(description=_("Katedry"), ordering="department_count")
-    def get_department_count(self):
-        """Return the number of departments related to the object."""
-        return self.department_count
-
-    @admin.display(description=_("Pracownicy"), ordering="employee_count")
-    def get_employee_count(self):
-        """Return the number of employees related to the object."""
-        return self.employee_count
-
 
 class Department(AbstractUnit):
-    """A class to represent departments."""
+    """A class to represent the Department objects."""
 
     faculty = models.ForeignKey(
         Faculty,
@@ -128,21 +105,26 @@ class Department(AbstractUnit):
         ordering = ("id",)
 
     class Manager(models.Manager):
-        """A class customizing default model's manager."""
-
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
                 .annotate(
-                    employee_count=models.Count("employments__employee", distinct=True),
+                    employee_count=models.Count(
+                        "employments__employee",
+                        distinct=True,
+                    ),
                 )
             )
 
     objects = Manager()
 
-    @admin.display(description=_("Pracownicy"), ordering="employee_count")
-    def get_employee_count(self):
-        """Return the number of employees related to the object."""
-        return self.employee_count
+    @property
+    @admin.display(
+        description=University._meta.verbose_name.capitalize(),
+        ordering="faculty__university",
+    )
+    def university(self):
+        """Return the University object of the object's related Faculty."""
+        return self.faculty.university

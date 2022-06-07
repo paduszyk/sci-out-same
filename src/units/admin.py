@@ -1,19 +1,22 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
+from employees.models import Employee
+from project.utils import related_model_count as count
+
 from .forms import DepartmentAdminForm, FacultyAdminForm, UniversityAdminForm
 from .models import Department, Faculty, University
 
 
 class FacultyInline(admin.TabularInline):
-    """A class to represent the faculty inline form."""
+    """A class to represent the Faculty model inline form."""
 
     model = Faculty
     extra = 0
 
 
 class DepartmentInline(admin.TabularInline):
-    """A class to represent the department inline form."""
+    """A class to represent the Department model inline form."""
 
     model = Department
     extra = 0
@@ -21,7 +24,7 @@ class DepartmentInline(admin.TabularInline):
 
 @admin.register(University)
 class UniversityAdmin(admin.ModelAdmin):
-    """Admin options for the University model."""
+    """A class to represent admin options for the University model."""
 
     form = UniversityAdminForm
 
@@ -30,22 +33,22 @@ class UniversityAdmin(admin.ModelAdmin):
         (_("Dane podstawowe"), {"fields": ("name", "abbr")}),
     )
     readonly_fields = ("id",)
-    inlines = [FacultyInline]
+    inlines = (FacultyInline,)
 
     list_display = (
         "id",
         "name",
         "abbr",
-        "get_faculty_count",
-        "get_department_count",
-        "get_employee_count",
+        count(Faculty),
+        count(Department),
+        count(Employee),
     )
     search_fields = ("name", "abbr")
 
 
 @admin.register(Faculty)
 class FacultyAdmin(admin.ModelAdmin):
-    """Admin options for the Faculty model."""
+    """A class to represent admin options for the Faculty model."""
 
     form = FacultyAdminForm
 
@@ -55,22 +58,22 @@ class FacultyAdmin(admin.ModelAdmin):
         (_("Jednostka nadrzędna"), {"fields": ("university",)}),
     )
     readonly_fields = ("id",)
-    inlines = [DepartmentInline]
+    inlines = (DepartmentInline,)
 
     list_display = (
         "id",
         "name",
         "abbr",
         "university",
-        "get_department_count",
-        "get_employee_count",
+        count(Department),
+        count(Employee),
     )
     search_fields = ("name", "abbr", "university__name", "university__abbr")
 
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
-    """Admin options for the Department model."""
+    """A class to represent admin options for the Department model."""
 
     form = DepartmentAdminForm
 
@@ -86,8 +89,8 @@ class DepartmentAdmin(admin.ModelAdmin):
         "name",
         "abbr",
         "faculty",
-        "get_university",
-        "get_employee_count",
+        "university",
+        count(Employee),
     )
     search_fields = (
         "name",
@@ -97,8 +100,3 @@ class DepartmentAdmin(admin.ModelAdmin):
         "faculty__university__name",
         "faculty__university__abbr",
     )
-
-    @admin.display(description=University._meta.verbose_name.capitalize())
-    def get_university(self, obj):
-        """Return university of the department object's faculty."""
-        return obj.faculty.university
