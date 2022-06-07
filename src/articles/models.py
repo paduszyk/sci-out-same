@@ -2,7 +2,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from authorships.models import Authorship
+from authorships.models import Author, Authorship
 
 
 class Journal(models.Model):
@@ -81,7 +81,21 @@ class Article(models.Model):
         editable=False,
     )
     locked = models.BooleanField(_("zablokowany"), default=False)
+
     authorships = GenericRelation(Authorship)
+
+    authors = models.TextField(
+        Author._meta.verbose_name_plural,
+        editable=False,
+        blank=True,
+        null=True,
+    )
+    author_count = models.PositiveSmallIntegerField(
+        _("liczba autorów"),
+        editable=False,
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         verbose_name = _("artykuł")
@@ -90,3 +104,15 @@ class Article(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.year}; {self.journal})"
+
+    def clean(self):
+        """Run some model-wide checks and updates."""
+        if not self.locked:
+            self.impact_factor, self.points = (
+                self.journal.impact_factor,
+                self.journal.points,
+            )
+
+    def get_authors(self):
+        """Get a list of the Author objects associated with the object authorships."""
+        return [authorship.author for authorship in self.authorships.order_by("order")]

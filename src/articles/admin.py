@@ -14,6 +14,7 @@ class AuthorshipInline(GenericTabularInline):
 
     model = Authorship
     extra = 0
+    autocomplete_fields = ("author",)
 
 
 @admin.register(Journal)
@@ -78,9 +79,18 @@ class ArticleAdmin(admin.ModelAdmin):
         (_("Ewaluacja"), {"fields": ("impact_factor", "points", "locked")}),
     )
     readonly_fields = ("id", "impact_factor", "points")
+    autocomplete_fields = ("journal",)
     inlines = (AuthorshipInline,)
 
-    list_display = ("id", "title", "journal_abbr", "year", "locked")
+    list_display = (
+        "id",
+        "author_count",
+        "authors",
+        "title",
+        "journal__abbr",
+        "year",
+        "locked",
+    )
     search_fields = (
         "title",
         "journal__title",
@@ -93,7 +103,7 @@ class ArticleAdmin(admin.ModelAdmin):
         description=Journal._meta.verbose_name.capitalize(),
         ordering="journal__abbr",
     )
-    def journal_abbr(self, obj):
+    def journal__abbr(self, obj):
         return obj.journal.abbr
 
     @admin.action(description=_("Zablokuj wybrane artykuły"))
