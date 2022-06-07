@@ -1,10 +1,12 @@
-from django.contrib import admin
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from authorships.models import Authorship
+
 
 class Journal(models.Model):
-    """A class to represent journals."""
+    """A class to represent the Journal objects."""
 
     title = models.CharField(_("tytuł"), max_length=255)
     abbr = models.CharField(_("skrót"), max_length=255)
@@ -32,11 +34,16 @@ class Journal(models.Model):
 
     class Manager(models.Manager):
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
-                .annotate(article_count=models.Count("articles", distinct=True))
+                .annotate(
+                    article_count=models.Count(
+                        "articles",
+                        distinct=True,
+                    )
+                )
             )
 
     objects = Manager()
@@ -44,14 +51,9 @@ class Journal(models.Model):
     def __str__(self):
         return self.title
 
-    @admin.display(description=_("Artykuły"), ordering="article_count")
-    def get_article_count(self):
-        """Get the number of articles published in the journal."""
-        return self.article_count
-
 
 class Article(models.Model):
-    """A class to represent articles."""
+    """A class to represent the Article objects."""
 
     title = models.TextField(_("tytuł"))
     journal = models.ForeignKey(
@@ -79,6 +81,7 @@ class Article(models.Model):
         editable=False,
     )
     locked = models.BooleanField(_("zablokowany"), default=False)
+    authorships = GenericRelation(Authorship)
 
     class Meta:
         verbose_name = _("artykuł")

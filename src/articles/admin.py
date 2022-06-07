@@ -3,13 +3,14 @@ from django.contrib.contenttypes.admin import GenericTabularInline
 from django.utils.translation import gettext_lazy as _
 
 from authorships.models import Authorship
+from project.utils import related_model_count as count
 
 from .forms import ArticleAdminForm, JournalAdminForm
 from .models import Article, Journal
 
 
 class AuthorshipInline(GenericTabularInline):
-    """A class to represent authorship inline form."""
+    """A class to represent the Authorship model inline form."""
 
     model = Authorship
     extra = 0
@@ -17,7 +18,7 @@ class AuthorshipInline(GenericTabularInline):
 
 @admin.register(Journal)
 class JournalAdmin(admin.ModelAdmin):
-    """Admin options for the Journal model."""
+    """A class to represent admin options for the Journal model."""
 
     form = JournalAdminForm
 
@@ -35,9 +36,9 @@ class JournalAdmin(admin.ModelAdmin):
         "abbr",
         "impact_factor",
         "points",
-        "ancestor_title",
-        "successors_titles",
-        "get_article_count",
+        "ancestor__title",
+        "successors__title",
+        count(Article),
     )
     search_fields = (
         "title",
@@ -49,21 +50,19 @@ class JournalAdmin(admin.ModelAdmin):
     )
 
     @admin.display(description=_("Przodek"), ordering="ancestor__title")
-    def ancestor_title(self, obj):
-        """Return journal's ancestor title."""
+    def ancestor__title(self, obj):
         if obj.ancestor:
             return obj.ancestor.title
 
     @admin.display(description=_("Następcy"))
-    def successors_titles(self, obj):
-        """Return journal's successors titles."""
+    def successors__title(self, obj):
         if obj.successors:
             return ", ".join(obj.successors.all().values_list("title", flat=True))
 
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
-    """Admin options for Article model."""
+    """A class to represent admin options for the Article model."""
 
     form = ArticleAdminForm
 
@@ -88,22 +87,19 @@ class ArticleAdmin(admin.ModelAdmin):
         "journal__abbr",
         "year",
     )
-    actions = ("lock_articles", "unlock_articles")
+    actions = ("lock", "unlock")
 
     @admin.display(
         description=Journal._meta.verbose_name.capitalize(),
         ordering="journal__abbr",
     )
     def journal_abbr(self, obj):
-        """Get the article's journal abbreviation."""
         return obj.journal.abbr
 
     @admin.action(description=_("Zablokuj wybrane artykuły"))
-    def lock_articles(self, request, queryset):
-        """Lock the articles from the queryset."""
+    def lock(self, request, queryset):
         queryset.update(locked=True)
 
     @admin.action(description=_("Odblokuj wybrane artykuły"))
-    def unlock_articles(self, request, queryset):
-        """Unlock the articles from the queryset."""
+    def unlock(self, request, queryset):
         queryset.update(locked=False)
