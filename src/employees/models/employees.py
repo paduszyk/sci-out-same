@@ -1,5 +1,5 @@
-from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -8,10 +8,10 @@ from .evaluations import Discipline
 
 
 class Status(models.Model):
-    """A class to represent employee's statuses."""
+    """A class to represent the Status objects."""
 
     name = models.CharField(_("nazwa"), max_length=255)
-    abbr = models.CharField(_("skrót"), max_length=255)
+    abbr = models.CharField(_("skrót"), max_length=255, unique=True)
 
     class Meta:
         verbose_name = _("status")
@@ -20,12 +20,15 @@ class Status(models.Model):
 
     class Manager(models.Manager):
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
                 .annotate(
-                    employee_count=models.Count("employees", distinct=True),
+                    employee_count=models.Count(
+                        "employees",
+                        distinct=True,
+                    ),
                 )
             )
 
@@ -36,7 +39,7 @@ class Status(models.Model):
 
 
 class Degree(models.Model):
-    """A class to represent employee's academic degrees."""
+    """A class to represent the Degree objects."""
 
     abbr = models.CharField(_("skrót"), max_length=255)
 
@@ -47,12 +50,15 @@ class Degree(models.Model):
 
     class Manager(models.Manager):
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
                 .annotate(
-                    employee_count=models.Count("employees", distinct=True),
+                    employee_count=models.Count(
+                        "employees",
+                        distinct=True,
+                    ),
                 )
             )
 
@@ -62,13 +68,16 @@ class Degree(models.Model):
         return self.abbr
 
 
+User = get_user_model()
+
+
 class Employee(models.Model):
-    """A class to represent employees."""
+    """A class to represent the Employee objects."""
 
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
-        verbose_name=_("użytkownik"),
+        verbose_name=User._meta.verbose_name,
     )
     slug = models.SlugField(_("slug"), max_length=255, unique=True)
     degree = models.ForeignKey(
@@ -111,7 +120,7 @@ class Employee(models.Model):
 
     class Manager(models.Manager):
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
@@ -131,22 +140,19 @@ class Employee(models.Model):
     def __str__(self):
         return self.user.get_full_name()
 
+    @property
     @admin.display(description=_("Nazwisko"), ordering="user__last_name")
     def last_name(self):
-        """Return the employee's last name."""
+        """Return the employee's last name based on the related User object."""
         return self.user.last_name
 
+    @property
     @admin.display(description=_("Imię"), ordering="user__first_name")
     def first_name(self):
-        """Return the employee's first name."""
+        """Return the employee's first name based on the related User object."""
         return self.user.first_name
 
     @admin.display(description=_("Zatrudniony"), boolean=True)
     def is_employed(self):
-        """Return True if an employee has an employment associated."""
+        """Return True if there exists a related Employment object."""
         return self.employment is not None
-
-    @admin.display(description=_("Autorstwa"), ordering="authorship_count")
-    def get_authorship_count(self):
-        """Return the number of authorships related to the object."""
-        return self.authorship_count

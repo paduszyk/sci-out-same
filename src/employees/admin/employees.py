@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from authorships.models import Author
+from authorships.models import Author, Authorship
+from project.utils import related_model_count as count
 from units.models import Department
 
 from ..forms import DegreeAdminForm, EmployeeAdminForm, StatusAdminForm
@@ -9,14 +10,14 @@ from ..models import Degree, Discipline, Employee, Employment, Status
 
 
 class EmploymentInline(admin.TabularInline):
-    """A class to represent the employment inline form."""
+    """A class to represent the Employment model inline form."""
 
     model = Employment
     extra = 0
 
 
 class AuthorInline(admin.TabularInline):
-    """A class to represent the author inline form."""
+    """A class to represent the Author model inline form."""
 
     model = Author
     extra = 0
@@ -24,7 +25,7 @@ class AuthorInline(admin.TabularInline):
 
 @admin.register(Status)
 class StatusAdmin(admin.ModelAdmin):
-    """Admin options for the Status model."""
+    """A class to represent admin options for the Status model."""
 
     form = StatusAdminForm
 
@@ -34,13 +35,13 @@ class StatusAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("id",)
 
-    list_display = ("id", "name", "abbr")
+    list_display = ("id", "name", "abbr", count(Employee))
     search_fields = ("name", "abbr")
 
 
 @admin.register(Degree)
 class DegreeAdmin(admin.ModelAdmin):
-    """Admin options for the Degree model."""
+    """A class to represent admin options for the Degree model."""
 
     form = DegreeAdminForm
 
@@ -50,13 +51,13 @@ class DegreeAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("id",)
 
-    list_display = ("id", "abbr")
+    list_display = ("id", "abbr", count(Employee))
     search_fields = ("abbr",)
 
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    """Admin options for the Employee model."""
+    """A class to represent admin options for the Employee model."""
 
     form = EmployeeAdminForm
 
@@ -75,12 +76,12 @@ class EmployeeAdmin(admin.ModelAdmin):
         "last_name",
         "first_name",
         "degree",
-        "status_abbr",
+        "status__abbr",
         "in_evaluation",
-        "discipline_abbr",
+        "discipline__abbr",
         "is_employed",
-        "department_abbr",
-        "get_authorship_count",
+        "department__abbr",
+        count(Authorship),
     )
     search_fields = ("id", "user__last_name", "user__first_name")
 
@@ -88,16 +89,14 @@ class EmployeeAdmin(admin.ModelAdmin):
         description=Status._meta.verbose_name.capitalize(),
         ordering="status__abbr",
     )
-    def status_abbr(self, obj):
-        """Return abbreviation of employee's status."""
+    def status__abbr(self, obj):
         return obj.status.abbr
 
     @admin.display(
         description=Discipline._meta.verbose_name.capitalize(),
         ordering="discipline__abbr",
     )
-    def discipline_abbr(self, obj):
-        """Return abbreviation of employee's discipline."""
+    def discipline__abbr(self, obj):
         if obj.discipline:
             return obj.discipline.abbr
 
@@ -105,7 +104,6 @@ class EmployeeAdmin(admin.ModelAdmin):
         description=Department._meta.verbose_name.capitalize(),
         ordering="employment__department__abbr",
     )
-    def department_abbr(self, obj):
-        """Return abbreviation of employee's department."""
+    def department__abbr(self, obj):
         if obj.is_employed():
             return obj.employment.department.abbr

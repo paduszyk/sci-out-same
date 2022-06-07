@@ -8,7 +8,7 @@ from .employees import Employee
 
 
 class Group(models.Model):
-    """A class to represent groups of positions."""
+    """A class to represent the Group objects."""
 
     name = models.CharField(_("nazwa"), max_length=255)
     abbr = models.CharField(_("skrót"), max_length=255)
@@ -19,16 +19,20 @@ class Group(models.Model):
         ordering = ("id",)
 
     class Manager(models.Manager):
-        """A class customizing default model's manager."""
-
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
                 .annotate(
-                    subgroup_count=models.Count("subgroups", distinct=True),
-                    position_count=models.Count("subgroups__position", distinct=True),
+                    subgroup_count=models.Count(
+                        "subgroups",
+                        distinct=True,
+                    ),
+                    position_count=models.Count(
+                        "subgroups__position",
+                        distinct=True,
+                    ),
                     employee_count=models.Count(
                         "subgroups__employments__employee",
                         distinct=True,
@@ -39,26 +43,11 @@ class Group(models.Model):
     objects = Manager()
 
     def __str__(self):
-        return self.name
-
-    @admin.display(description=_("Podgrupy"), ordering="subgroup_count")
-    def get_subgroup_count(self):
-        """Return the number of subgroups related to the object."""
-        return self.subgroup_count
-
-    @admin.display(description=_("Stanowiska"), ordering="position_count")
-    def get_position_count(self):
-        """Return the number of positions related to the object."""
-        return self.position_count
-
-    @admin.display(description=_("Pracownicy"), ordering="employee_count")
-    def get_employee_count(self):
-        """Return the number of employees related to the object."""
-        return self.employee_count
+        return f"{self.name} ({self.abbr})"
 
 
 class Subgroup(models.Model):
-    """A class to represent subgroups of positions within a group."""
+    """A class to represent the Subgroup objects."""
 
     group = models.ForeignKey(
         Group,
@@ -75,37 +64,31 @@ class Subgroup(models.Model):
         ordering = ("id",)
 
     class Manager(models.Manager):
-        """A class customizing default model's manager."""
-
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
                 .annotate(
-                    position_count=models.Count("position", distinct=True),
-                    employee_count=models.Count("employments__employee", distinct=True),
+                    position_count=models.Count(
+                        "position",
+                        distinct=True,
+                    ),
+                    employee_count=models.Count(
+                        "employments__employee",
+                        distinct=True,
+                    ),
                 )
             )
 
     objects = Manager()
 
     def __str__(self):
-        return f"{self.name} ({self.group})"
-
-    @admin.display(description=_("Stanowiska"), ordering="position_count")
-    def get_position_count(self):
-        """Return the number of positions related to the object."""
-        return self.position_count
-
-    @admin.display(description=_("Pracownicy"), ordering="employee_count")
-    def get_employee_count(self):
-        """Return the number of employees related to the object."""
-        return self.employee_count
+        return f"{self.name} ({self.group.name})"
 
 
 class Position(models.Model):
-    """A class to represent positions."""
+    """A class to represent the Position objects."""
 
     name = models.CharField(_("nazwa"), max_length=255)
     subgroups = models.ManyToManyField(
@@ -119,15 +102,16 @@ class Position(models.Model):
         ordering = ("id",)
 
     class Manager(models.Manager):
-        """A class customizing default model's manager."""
-
         def get_queryset(self):
-            """Get the annotated queryset."""
+            """Update the queryset by some annotations."""
             return (
                 super()
                 .get_queryset()
                 .annotate(
-                    employee_count=models.Count("employments__employee", distinct=True),
+                    employee_count=models.Count(
+                        "employments__employee",
+                        distinct=True,
+                    ),
                 )
             )
 
@@ -146,17 +130,12 @@ class Position(models.Model):
 
     @admin.display(description=_("Klasyfikacja"), boolean=True)
     def is_classified(self):
-        """Check if the position has unique group."""
+        """Check if the object has the unique related Group object."""
         return self.get_groups().count() == 1
-
-    @admin.display(description=_("Pracownicy"), ordering="employee_count")
-    def get_employee_count(self):
-        """Return the number of employees related to the object."""
-        return self.employee_count
 
 
 class Employment(models.Model):
-    """A class to represent employments."""
+    """A class to represent the Employment objects."""
 
     employee = models.OneToOneField(
         Employee,
@@ -194,4 +173,4 @@ class Employment(models.Model):
         ordering = ("id",)
 
     def __str__(self):
-        return ""
+        return f"{_('Zatrudnienie')} ID={self.id}"
