@@ -17,6 +17,7 @@ black = "*"
 ipython = "*"
 pandas = "*"
 openpyxl = "*"
+django-debug-toolbar = "*"
 
 [requires]
 python_version = "3.9"

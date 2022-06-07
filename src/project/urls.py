@@ -13,6 +13,8 @@ urlpatterns = [
     path("employees/", include("employees.urls")),
     path("authorships/", include("authorships.urls")),
     path("articles/", include("articles.urls")),
+    # 3rd party apps URLs
+    path("__debug__/", include("debug_toolbar.urls")),
 ]
 
 urlpatterns = (
