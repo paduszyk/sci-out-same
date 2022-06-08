@@ -10,6 +10,7 @@ urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
     # Project apps URLs
     path("units/", include("units.urls")),
+    path("employees/", include("employees.urls")),
 ]
 
 urlpatterns = (

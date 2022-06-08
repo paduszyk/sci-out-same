@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     # Project apps
     "units",
+    "employees",
 ]
 
 MIDDLEWARE = [
