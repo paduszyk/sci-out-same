@@ -9,7 +9,7 @@ from .models import Department, Faculty, University
 
 
 @admin.register(University)
-class UniversityAdmin(admin.ModelAdmin):
+class UniversityAdmin(admin_utils.ModelAdmin):
     """A class to represent admin options for the University model."""
 
     class FacultyInline(admin.TabularInline):
@@ -17,6 +17,9 @@ class UniversityAdmin(admin.ModelAdmin):
         extra = 0
 
     form = UniversityAdminForm
+
+    model_accusative = _("uczelnię")
+    model_genitive_plural = _("uczelni")
 
     fieldsets = (
         (None, {"fields": ("id",)}),
@@ -40,7 +43,7 @@ class UniversityAdmin(admin.ModelAdmin):
 
 
 @admin.register(Faculty)
-class FacultyAdmin(admin.ModelAdmin):
+class FacultyAdmin(admin_utils.ModelAdmin):
     """A class to represent admin options for the Faculty model."""
 
     class DepartmentInline(admin.TabularInline):
@@ -48,6 +51,9 @@ class FacultyAdmin(admin.ModelAdmin):
         extra = 0
 
     form = FacultyAdminForm
+
+    model_accusative = _("wydział")
+    model_genitive_plural = _("wydziałów")
 
     fieldsets = (
         (None, {"fields": ("id",)}),
@@ -115,15 +121,18 @@ class DepartmentByUniversityFilter(admin.SimpleListFilter):
 
 
 @admin.register(Department)
-class DepartmentAdmin(admin.ModelAdmin):
+class DepartmentAdmin(admin_utils.ModelAdmin):
     """A class to represent admin options for the Department model."""
 
     form = DepartmentAdminForm
 
+    model_accusative = _("katedrę")
+    model_genitive_plural = _("katedr")
+
     fieldsets = (
         (None, {"fields": ("id",)}),
         (_("Pola podstawowe"), {"fields": ("name", "code")}),
-        (_("Jednostka nadrzędna"), {"fields": ("faculty",)}),
+        (_("Jednostka nadrzędna"), {"fields": ("university", "faculty")}),
     )
     readonly_fields = ("id",)
 

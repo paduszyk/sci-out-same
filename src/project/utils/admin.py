@@ -1,3 +1,4 @@
+from django.contrib.admin import ModelAdmin as BaseModelAdmin
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
@@ -61,3 +62,34 @@ def related_objects_links(
         list_link = None
 
     return related_objects_links + (["", list_link] if list_link else [])
+
+
+class ModelAdmin(BaseModelAdmin):
+    """A class to represent customized ModelAdmin options."""
+
+    add_phrase = _("Dodaj")
+    change_phrase = _("Zmień")
+
+    model_accusative = None
+    model_genitive_plural = _("obiektów")
+
+    def changeform_view(self, request, object_id, form_url, extra_context):
+        extra_context = extra_context or {}
+        extra_context.update(
+            {
+                "title": f"{self.change_phrase} {self.model_accusative or _('obiekt')}"
+                if self.get_object(request, object_id)
+                else f"{self.add_phrase} {self.model_accusative or _('obiekt')}"
+            }
+        )
+        return super().changeform_view(request, object_id, form_url, extra_context)
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context.update(
+            {
+                "name": f"{self.add_phrase} {self.model_accusative or _('obiekt')}",
+                "title": f"{_('Wybierz')} {self.model_accusative} {_('do zmiany')}",
+            }
+        )
+        return super().changelist_view(request, extra_context)
