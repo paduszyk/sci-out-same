@@ -7,4 +7,4 @@ class UnitsConfig(AppConfig):
 
     default_auto_field = "django.db.models.BigAutoField"
     name = "units"
-    verbose_name = _("jednostki")
+    verbose_name = _("Jednostki")
