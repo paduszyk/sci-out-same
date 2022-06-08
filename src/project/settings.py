@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     "django.forms",
     # 3rd party apps
     "debug_toolbar",
+    # Project apps
+    "units",
 ]
 
 MIDDLEWARE = [
