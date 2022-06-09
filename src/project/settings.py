@@ -41,6 +41,10 @@ INTERNAL_IPS = [
 # Application definition
 
 INSTALLED_APPS = [
+    # 3rd party apps
+    "admin_interface",
+    "colorfield",
+    # Built-in apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -52,7 +56,15 @@ INSTALLED_APPS = [
     "debug_toolbar",
     # Project apps
     "units",
+    "employees",
 ]
+
+# Options for django-admin-interface
+# https://pypi.org/project/django-admin-interface/
+
+X_FRAME_OPTIONS = "SAMEORIGIN"
+SILENCED_SYSTEM_CHECKS = ["security.W019"]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
