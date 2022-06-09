@@ -61,6 +61,7 @@ class FacultyAdmin(admin_utils.ModelAdmin):
         (_("Jednostka nadrzędna"), {"fields": ("university",)}),
     )
     readonly_fields = ("id",)
+    autocomplete_fields = ("university",)
     inlines = (DepartmentInline,)
 
     list_display = ("id", "name", "code", "university__name", "departments")
@@ -132,9 +133,10 @@ class DepartmentAdmin(admin_utils.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("id",)}),
         (_("Pola podstawowe"), {"fields": ("name", "code")}),
-        (_("Jednostka nadrzędna"), {"fields": ("university", "faculty")}),
+        (_("Jednostka nadrzędna"), {"fields": ("faculty",)}),
     )
     readonly_fields = ("id",)
+    autocomplete_fields = ("faculty",)
 
     list_display = ("id", "name", "code", "faculty__name", "university__name")
     list_filter = (
