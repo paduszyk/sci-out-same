@@ -122,6 +122,7 @@ class DisciplineAdmin(admin_utils.ModelAdmin):
     autocomplete_fields = ("domain",)
 
     list_display = ("id", "name", "code", "domain")
+    list_filter = ("domain",)
     search_fields = ("name", "code", "domain__name", "domain__code")
 
 
@@ -180,7 +181,36 @@ class SubgroupAdmin(admin_utils.ModelAdmin):
     autocomplete_fields = ("group",)
 
     list_display = ("id", "name", "code", "group")
+    list_filter = ("group",)
     search_fields = ("name", "code", "group__name", "group__code")
+
+
+class PositionBySubgroupFilter(admin.SimpleListFilter):
+    """Admin list filter of the Position objects by the related Subgroup objects."""
+
+    title = Subgroup._meta.verbose_name
+    parameter_name = Subgroup._meta.model_name
+
+    def lookups(self, request, model_admin):
+        return ((subgroup.id, subgroup.name) for subgroup in Subgroup.objects.all())
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(subgroup_set=self.value())
+
+
+class PositionByGroupFilter(admin.SimpleListFilter):
+    """Admin list filter of the Position objects by the related Group objects."""
+
+    title = Group._meta.verbose_name
+    parameter_name = Group._meta.model_name
+
+    def lookups(self, request, model_admin):
+        return ((group.id, group.name) for group in Group.objects.all())
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(subgroup_set__group=self.value()).distinct()
 
 
 @admin.register(Position)
@@ -201,6 +231,7 @@ class PositionAdmin(admin_utils.ModelAdmin):
     autocomplete_fields = ("subgroup_set",)
 
     list_display = ("id", "name", "group", "subgroups")
+    list_filter = (PositionByGroupFilter, PositionBySubgroupFilter)
     search_fields = ("name", "subgroup_set__name", "subgroup_set__code")
 
     @admin.display(description=Subgroup._meta.verbose_name_plural.capitalize())
@@ -227,6 +258,79 @@ class EmploymentInline(admin.StackedInline):
         (_("Jednostka"), {"fields": ("department",)}),
     )
     autocomplete_fields = ("subgroup", "position", "department")
+
+
+class EmployeeByPositionFilter(admin.SimpleListFilter):
+    """Admin list filter of the Employee objects by the related Position objects."""
+
+    title = Position._meta.verbose_name
+    parameter_name = Position._meta.model_name
+
+    def lookups(self, request, model_admin):
+        lookups = [(position.id, position.name) for position in Position.objects.all()]
+        return tuple(lookups + [(0, "-")])
+
+    def queryset(self, request, queryset):
+        if self.value():
+            if not self.value() == "0":
+                return queryset.filter(employment__position=self.value()).distinct()
+            return queryset.filter(employment__position__isnull=True)
+
+
+class EmployeeByGroupFilter(admin.SimpleListFilter):
+    """Admin list filter of the Employee objects by the related Group objects."""
+
+    title = Group._meta.verbose_name
+    parameter_name = Group._meta.model_name
+
+    def lookups(self, request, model_admin):
+        lookups = [(group.id, group.name) for group in Group.objects.all()]
+        return tuple(lookups + [(0, "-")])
+
+    def queryset(self, request, queryset):
+        if self.value():
+            if not self.value() == "0":
+                return queryset.filter(
+                    employment__subgroup__group=self.value()
+                ).distinct()
+            return queryset.filter(employment__subgroup__isnull=True)
+
+
+class EmployeeBySubgroupFilter(admin.SimpleListFilter):
+    """Admin list filter of the Employee objects by the related Subgroup objects."""
+
+    title = Subgroup._meta.verbose_name
+    parameter_name = Subgroup._meta.model_name
+
+    def lookups(self, request, model_admin):
+        lookups = [(subgroup.id, subgroup.name) for subgroup in Subgroup.objects.all()]
+        return tuple(lookups + [(0, "-")])
+
+    def queryset(self, request, queryset):
+        if self.value():
+            if not self.value() == "0":
+                return queryset.filter(employment__subgroup=self.value()).distinct()
+            return queryset.filter(employment__subgroup__isnull=True)
+
+
+class EmployeeByDepartmentFilter(admin.SimpleListFilter):
+    """Admin list filter of the Employee objects by the related Department objects."""
+
+    title = Department._meta.verbose_name
+    parameter_name = Department._meta.model_name
+
+    def lookups(self, request, model_admin):
+        lookups = [
+            (department.id, department.get_full_code())
+            for department in Department.objects.all()
+        ]
+        return tuple(lookups + [(0, "-")])
+
+    def queryset(self, request, queryset):
+        if self.value():
+            if not self.value() == "0":
+                return queryset.filter(employment__department=self.value()).distinct()
+            return queryset.filter(employment__department__isnull=True)
 
 
 @admin.register(Employee)
@@ -261,7 +365,15 @@ class EmployeeAdmin(admin_utils.ModelAdmin):
         "in_evaluation",
     )
     list_display_links = ()
-    list_filter = ()
+    list_filter = (
+        "status",
+        "degree",
+        "in_evaluation",
+        EmployeeByGroupFilter,
+        EmployeeBySubgroupFilter,
+        EmployeeByPositionFilter,
+        EmployeeByDepartmentFilter,
+    )
     list_editable = ("in_evaluation",)
     search_fields = (
         "user__username",
@@ -326,6 +438,43 @@ class EmployeeAdmin(admin_utils.ModelAdmin):
         )
 
 
+class EmploymentByGroupFilter(admin.SimpleListFilter):
+    """Admin list filter of the Employment objects by the related Group objects."""
+
+    title = Group._meta.verbose_name
+    parameter_name = Group._meta.model_name
+
+    def lookups(self, request, model_admin):
+        lookups = [(group.id, group.name) for group in Group.objects.all()]
+        return tuple(lookups + [(0, "-")])
+
+    def queryset(self, request, queryset):
+        if self.value():
+            if not self.value() == "0":
+                return queryset.filter(subgroup__group=self.value()).distinct()
+            return queryset.filter(subgroup__isnull=True)
+
+
+class EmploymentByDepartmentFilter(admin.SimpleListFilter):
+    """Admin list filter of the Employment objects by the related Department objects."""
+
+    title = Department._meta.verbose_name
+    parameter_name = Department._meta.model_name
+
+    def lookups(self, request, model_admin):
+        lookups = [
+            (department.id, department.get_full_code())
+            for department in Department.objects.all()
+        ]
+        return tuple(lookups + [(0, "-")])
+
+    def queryset(self, request, queryset):
+        if self.value():
+            if not self.value() == "0":
+                return queryset.filter(department=self.value()).distinct()
+            return queryset.filter(department__isnull=True)
+
+
 @admin.register(Employment)
 class EmploymentAdmin(admin_utils.ModelAdmin):
     """A class to represent admin options for the Employment model."""
@@ -352,7 +501,12 @@ class EmploymentAdmin(admin_utils.ModelAdmin):
         "position",
         "department__code",
     )
-    list_filter = ()
+    list_filter = (
+        EmploymentByGroupFilter,
+        "subgroup",
+        "position",
+        EmploymentByDepartmentFilter,
+    )
     search_fields = (
         "employee__user__last_name",
         "employee__user__first_name",
@@ -385,4 +539,4 @@ class EmploymentAdmin(admin_utils.ModelAdmin):
     )
     def department__code(self, obj):
         if obj.department:
-            return obj.department.code
+            return obj.department.get_full_code()
