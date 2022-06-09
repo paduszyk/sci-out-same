@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
@@ -121,7 +122,12 @@ class DisciplineAdmin(admin_utils.ModelAdmin):
     readonly_fields = ("id",)
     autocomplete_fields = ("domain",)
 
-    list_display = ("id", "name", "code", "domain")
+    list_display = (
+        "id",
+        "name",
+        "code",
+        admin_utils.related_object_link(Domain),
+    )
     list_filter = ("domain",)
     search_fields = ("name", "code", "domain__name", "domain__code")
 
@@ -180,7 +186,12 @@ class SubgroupAdmin(admin_utils.ModelAdmin):
     readonly_fields = ("id",)
     autocomplete_fields = ("group",)
 
-    list_display = ("id", "name", "code", "group")
+    list_display = (
+        "id",
+        "name",
+        "code",
+        admin_utils.related_object_link(Group),
+    )
     list_filter = ("group",)
     search_fields = ("name", "code", "group__name", "group__code")
 
@@ -202,7 +213,12 @@ class PositionAdmin(admin_utils.ModelAdmin):
     readonly_fields = ("id",)
     autocomplete_fields = ("subgroup_set",)
 
-    list_display = ("id", "name", "group", "subgroups")
+    list_display = (
+        "id",
+        "name",
+        admin_utils.related_object_link(Group),
+        "subgroups",
+    )
     list_filter = (
         admin_utils.RelatedModelFilter.as_filter(
             model=Group,
@@ -243,6 +259,9 @@ class EmploymentInline(admin.StackedInline):
     autocomplete_fields = ("subgroup", "position", "department")
 
 
+User = get_user_model()
+
+
 @admin.register(Employee)
 class EmployeeAdmin(admin_utils.ModelAdmin):
     """A class to represent admin options for the Employee model."""
@@ -264,14 +283,15 @@ class EmployeeAdmin(admin_utils.ModelAdmin):
 
     list_display = (
         "id",
+        admin_utils.related_object_link(User),
         "last_name",
         "first_name",
-        "degree",
-        "status__code",
-        "positions__name",
-        "groups__code",
-        "subgroups__code",
-        "departments__code",
+        admin_utils.related_object_link(Degree),
+        admin_utils.related_object_link(Status, content_field="code"),
+        "positions__name",  # TODO Transform into links
+        "groups__code",  # TODO Transform into links
+        "subgroups__code",  # TODO Transform into links
+        "departments__code",  # TODO Transform into links
         "in_evaluation",
     )
     list_display_links = ()
@@ -311,14 +331,6 @@ class EmployeeAdmin(admin_utils.ModelAdmin):
         "user__first_name",
         "orcid",
     )
-
-    @admin.display(
-        description=Status._meta.verbose_name.capitalize(),
-        ordering="status__code",
-    )
-    def status__code(self, obj):
-        if obj.status:
-            return obj.status.code
 
     @admin.display(
         description=Position._meta.verbose_name.capitalize(),
@@ -388,11 +400,15 @@ class EmploymentAdmin(admin_utils.ModelAdmin):
 
     list_display = (
         "id",
-        "employee",
-        "group__code",
-        "subgroup__code",
-        "position",
-        "department__code",
+        admin_utils.related_object_link(Employee, content_field="get_full_name"),
+        admin_utils.related_object_link(
+            Group,
+            content_field="code",
+            ordering_lookup="subgroup__group__code",
+        ),
+        admin_utils.related_object_link(Subgroup, content_field="code"),
+        admin_utils.related_object_link(Position, content_field="name"),
+        admin_utils.related_object_link(Department, content_field="get_full_code"),
     )
     list_filter = (
         admin_utils.RelatedModelFilter.as_filter(
@@ -419,27 +435,3 @@ class EmploymentAdmin(admin_utils.ModelAdmin):
         "subgroup__group__name",
         "subgroup__group__code",
     )
-
-    @admin.display(
-        description=Group._meta.verbose_name.capitalize(),
-        ordering="subgroup__group__code",
-    )
-    def group__code(self, obj):
-        if obj.subgroup:
-            return obj.subgroup.group.code
-
-    @admin.display(
-        description=Subgroup._meta.verbose_name.capitalize(),
-        ordering="subgroup__code",
-    )
-    def subgroup__code(self, obj):
-        if obj.subgroup:
-            return obj.subgroup.code
-
-    @admin.display(
-        description=Department._meta.verbose_name.capitalize(),
-        ordering="department__code",
-    )
-    def department__code(self, obj):
-        if obj.department:
-            return obj.department.get_full_code()

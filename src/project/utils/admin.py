@@ -8,6 +8,53 @@ from django.utils.translation import gettext_lazy as _
 from . import render_link
 
 
+def related_object_link(
+    related_model,
+    fk_field=None,
+    content_field=None,
+    ordering_lookup=None,
+    null_label="-",
+):
+    """Return a callable returning a link to the related object change form."""
+    if isinstance(related_model, str):
+        related_model = apps.get_model(related_model)
+    if fk_field is None:
+        fk_field = related_model._meta.model_name
+    if ordering_lookup is None:
+        ordering_lookup = f"{fk_field}__{content_field}"
+
+    @admin.display(
+        description=related_model._meta.verbose_name.capitalize(),
+        ordering=ordering_lookup,
+    )
+    def link(obj):
+        """Callable to be returned."""
+        if not hasattr(obj, fk_field):
+            raise FieldDoesNotExist(
+                f"The requested {obj._meta.label} model "
+                f"field '{fk_field}' does not exist."
+            )
+
+        related_obj = getattr(obj, fk_field, None)
+
+        return (
+            render_link(
+                href=reverse_lazy(
+                    (
+                        f"admin:{related_model._meta.app_label}_"
+                        f"{related_model._meta.model_name}_change"
+                    ),
+                    args=(related_obj.id,),
+                ),
+                content=getattr(related_obj, content_field or "__str__"),
+            )
+            if related_obj
+            else null_label
+        )
+
+    return link
+
+
 def related_objects_links(
     obj,
     *,

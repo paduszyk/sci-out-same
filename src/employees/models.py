@@ -273,3 +273,8 @@ class Employment(models.Model):
 
     def __str__(self):
         return f"{self._meta.verbose_name.capitalize()} ID={self.id}"
+
+    @property
+    def group(self):
+        if self.subgroup:
+            return self.subgroup.group
