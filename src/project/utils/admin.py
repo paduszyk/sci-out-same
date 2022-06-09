@@ -1,4 +1,7 @@
+from django.apps import apps
+from django.contrib import admin
 from django.contrib.admin import ModelAdmin as BaseModelAdmin
+from django.core.exceptions import FieldDoesNotExist
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
@@ -93,3 +96,107 @@ class ModelAdmin(BaseModelAdmin):
             }
         )
         return super().changelist_view(request, extra_context)
+
+
+class RelatedModelFilter:
+    """A class to represent admin filter by the selected field of the related model."""
+
+    NULL_PARAMETER_VALUE = "null"
+    NULL_LABEL = "-"
+
+    def __init__(self, model, lookup, field, null=False, null_lookup=None, **kwargs):
+        self.model = model
+        self.lookup = lookup
+        self.field = field
+        self.null = null
+        self.null_lookup = null_lookup
+        self.null_lookup_value = True
+        self.title = None
+        self.parameter_name = None
+
+        self.__dict__.update(kwargs)
+
+    @classmethod
+    def as_filter(cls, model, lookup, field, null=False, null_lookup=None, **kwargs):
+        """Return the filter without creating an instance of the class."""
+        return cls(
+            model,
+            lookup,
+            field,
+            null,
+            null_lookup,
+            **kwargs,
+        ).get_filter()
+
+    def get_filter(self):
+        """Return the filter class."""
+
+        class Filter(admin.SimpleListFilter):
+            """Filter class to be returned."""
+
+            title = self.get_filter_title()
+            parameter_name = self.get_filter_parameter_name()
+
+            def lookups(obj, request, model_admin):
+                lookups = [
+                    (obj.id, getattr(obj, self.field))
+                    for obj in self.model.objects.all()
+                ]
+                if self.null_lookup:
+                    lookups += [(self.NULL_PARAMETER_VALUE, self.NULL_LABEL)]
+                return lookups
+
+            def queryset(obj, request, queryset):
+                value = obj.value()
+                if value:
+                    if not value == self.NULL_PARAMETER_VALUE:
+                        return queryset.filter(**{self.lookup: value}).distinct()
+                    return queryset.filter(**{self.null_lookup: self.null_lookup_value})
+
+        return Filter
+
+    @property
+    def model(self):
+        """Return the object's `_model` attribute."""
+        return self._model
+
+    @model.setter
+    def model(self, value):
+        """Set the objects' `_model` attribute."""
+        if isinstance(value, str):
+            self._model = apps.get_model(value)
+        else:
+            self._model = value
+
+    @property
+    def field(self):
+        """Return the object's `_field` attribute."""
+        return self._field
+
+    @field.setter
+    def field(self, value):
+        """Set the objects' `_field` attribute."""
+        if not hasattr(self.model, value):
+            raise FieldDoesNotExist(
+                f"The requested {self.model._meta.label} model field "
+                f"'{value}' does not exist."
+            )
+        self._field = value
+
+    @property
+    def null_lookup(self):
+        """Return the object's `_null_lookup` attribute."""
+        return self._null_lookup
+
+    @null_lookup.setter
+    def null_lookup(self, value):
+        """Return the value to be used by the filter as the `null` value."""
+        self._null_lookup = value or f"{self.lookup}__isnull"
+
+    def get_filter_title(self):
+        """Return the value for filter class `title` attribute."""
+        return self.title or self.model._meta.verbose_name
+
+    def get_filter_parameter_name(self):
+        """Return the value for filter class `parameter_name` attribute."""
+        return self.parameter_name or self.model._meta.model_name
