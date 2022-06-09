@@ -129,7 +129,7 @@ class Subgroup(models.Model):
 class Position(models.Model):
     """A class to represent the Position objects."""
 
-    subgroups = models.ManyToManyField(
+    subgroup_set = models.ManyToManyField(
         to=Subgroup,
         verbose_name=Subgroup._meta.verbose_name_plural,
         blank=True,
@@ -148,8 +148,8 @@ class Position(models.Model):
     @admin.display(description=Group._meta.verbose_name.capitalize())
     def group(self):
         """Return the Group object related to the object via `subgroups` field."""
-        if self.subgroups.exists():
-            return self.subgroups.all()[0].group
+        if self.subgroup_set.exists():
+            return self.subgroup_set.first().group
 
 
 User = get_user_model()
@@ -220,15 +220,26 @@ class Employee(models.Model):
         return self.user.first_name
 
     @property
-    @admin.display(description=_("E-mail"), ordering="user__email")
     def email(self):
         return self.user.email
+
+    @property
+    def positions(self):
+        return [employment.position for employment in self.employment_set.all()]
+
+    @property
+    def subgroups(self):
+        return [employment.subgroup for employment in self.employment_set.all()]
+
+    @property
+    def departments(self):
+        return [employment.department for employment in self.employment_set.all()]
 
 
 class Employment(models.Model):
     """A class to represent the Employment objects."""
 
-    employee = models.OneToOneField(
+    employee = models.ForeignKey(
         to=Employee,
         on_delete=models.CASCADE,
         verbose_name=Employee._meta.verbose_name,
