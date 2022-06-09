@@ -53,7 +53,7 @@ def related_objects_links(
         list_link = (
             render_link(
                 href=(f"{list_url}" f"?{obj._meta.model_name}__id__exact={obj.id}"),
-                content=_("Zobacz wszystkie"),
+                content=_("Pokaż wszystkie"),
             )
             if len(related_objects_links) > 1
             else None
