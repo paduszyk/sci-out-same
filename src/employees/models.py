@@ -165,7 +165,7 @@ class Employee(models.Model):
     )
     status = models.ForeignKey(
         to=Status,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         verbose_name=Status._meta.verbose_name,
         blank=True,
         null=True,
