@@ -1,3 +1,5 @@
-app_name = "attainments"
+from django.urls import include, path
 
-urlpatterns = []
+urlpatterns = [
+    path("articles/", include("attainments.articles.urls")),
+]
