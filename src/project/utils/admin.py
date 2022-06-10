@@ -120,16 +120,16 @@ class ModelAdmin(BaseModelAdmin):
     add_phrase = _("Dodaj")
     change_phrase = _("Zmień")
 
-    model_accusative = None
+    model_accusative = _("obiekt")
     model_genitive_plural = _("obiektów")
 
     def changeform_view(self, request, object_id, form_url, extra_context):
         extra_context = extra_context or {}
         extra_context.update(
             {
-                "title": f"{self.change_phrase} {self.model_accusative or _('obiekt')}"
+                "title": f"{self.change_phrase} {self.model_accusative}"
                 if self.get_object(request, object_id)
-                else f"{self.add_phrase} {self.model_accusative or _('obiekt')}"
+                else f"{self.add_phrase} {self.model_accusative}"
             }
         )
         return super().changeform_view(request, object_id, form_url, extra_context)
@@ -138,7 +138,7 @@ class ModelAdmin(BaseModelAdmin):
         extra_context = extra_context or {}
         extra_context.update(
             {
-                "name": f"{self.add_phrase} {self.model_accusative or _('obiekt')}",
+                "name": f"{self.add_phrase} {self.model_accusative}",
                 "title": f"{_('Wybierz')} {self.model_accusative} {_('do zmiany')}",
             }
         )
@@ -189,7 +189,7 @@ class RelatedModelFilter:
                     (obj.id, getattr(obj, self.field))
                     for obj in self.model.objects.all()
                 ]
-                if self.null_lookup:
+                if self.null:
                     lookups += [(self.NULL_PARAMETER_VALUE, self.NULL_LABEL)]
                 return lookups
 
