@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "django.forms",
     # 3rd party apps
     "debug_toolbar",
+    "bootstrap5",
     # Project apps
     "units",
     "employees",
