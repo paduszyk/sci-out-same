@@ -64,7 +64,13 @@ class FacultyAdmin(admin_utils.ModelAdmin):
     autocomplete_fields = ("university",)
     inlines = (DepartmentInline,)
 
-    list_display = ("id", "name", "code", "university__name", "departments")
+    list_display = (
+        "id",
+        "name",
+        "code",
+        admin_utils.related_object_link(University),
+        "departments",
+    )
     list_filter = ("university",)
     search_fields = (
         "name",
@@ -72,13 +78,6 @@ class FacultyAdmin(admin_utils.ModelAdmin):
         "university__name",
         "university__code",
     )
-
-    @admin.display(
-        description=University._meta.verbose_name,
-        ordering="university__name",
-    )
-    def university__name(self, obj):
-        return obj.university.name
 
     @admin.display(description=Department._meta.verbose_name_plural.capitalize())
     def departments(self, obj):
@@ -89,36 +88,6 @@ class FacultyAdmin(admin_utils.ModelAdmin):
         )
         if links:
             return format_html("<br>".join(links))
-
-
-class DepartmentByFacultyFilter(admin.SimpleListFilter):
-    """Admin list filter of the Department objects by the related Faculty objects."""
-
-    title = Faculty._meta.verbose_name
-    parameter_name = Faculty._meta.model_name
-
-    def lookups(self, request, model_admin):
-        return ((faculty.id, faculty.name) for faculty in Faculty.objects.all())
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(faculty__id__exact=self.value())
-
-
-class DepartmentByUniversityFilter(admin.SimpleListFilter):
-    """Admin list filter of the Department objects by the related University objects."""
-
-    title = University._meta.verbose_name
-    parameter_name = Department._meta.model_name
-
-    def lookups(self, request, model_admin):
-        return (
-            (university.id, university.name) for university in University.objects.all()
-        )
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(faculty__university__id__exact=self.value())
 
 
 @admin.register(Department)
@@ -138,10 +107,24 @@ class DepartmentAdmin(admin_utils.ModelAdmin):
     readonly_fields = ("id",)
     autocomplete_fields = ("faculty",)
 
-    list_display = ("id", "name", "code", "faculty__name", "university__name")
+    list_display = (
+        "id",
+        "name",
+        "code",
+        admin_utils.related_object_link(Faculty, content_field="name"),
+        admin_utils.related_object_link(University, content_field="name"),
+    )
     list_filter = (
-        DepartmentByFacultyFilter,
-        DepartmentByUniversityFilter,
+        admin_utils.RelatedModelFilter.as_filter(
+            model=Faculty,
+            lookup="faculty",
+            field="name",
+        ),
+        admin_utils.RelatedModelFilter.as_filter(
+            model=University,
+            lookup="faculty__university",
+            field="name",
+        ),
     )
     search_fields = (
         "name",
@@ -151,17 +134,3 @@ class DepartmentAdmin(admin_utils.ModelAdmin):
         "faculty__university__name",
         "faculty__university__code",
     )
-
-    @admin.display(
-        description=Faculty._meta.verbose_name,
-        ordering="faculty__name",
-    )
-    def faculty__name(self, obj):
-        return obj.faculty.name
-
-    @admin.display(
-        description=University._meta.verbose_name,
-        ordering="faculty__university__name",
-    )
-    def university__name(self, obj):
-        return obj.university.name
