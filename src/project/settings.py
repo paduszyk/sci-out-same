@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "accounts",
     "units",
     "employees",
+    "attainments",
 ]
 
 # Options for django-admin-interface
