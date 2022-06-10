@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "bootstrap5",
     # Project apps
+    "accounts",
     "units",
     "employees",
 ]
@@ -93,6 +94,9 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
+            "libraries": {
+                "project_tags": "project.templatetags.tags",
+            },
         },
     },
 ]
@@ -147,8 +151,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Users & authentication settings
 
-AUTH_USER_MODEL = "auth.User"
+AUTH_USER_MODEL = "accounts.User"
 
+LOGIN_URL = "accounts:login"
+
+LOGIN_REDIRECT_URL = "home"
+
+LOGOUT_REDIRECT_URL = "home"
 
 # Session settings
 

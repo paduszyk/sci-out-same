@@ -12,6 +12,7 @@ urlpatterns = [
     # 3rd party apps URLs
     path("__debug__/", include("debug_toolbar.urls")),
     # Project apps URLs
+    path("accounts/", include("accounts.urls")),
     path("units/", include("units.urls")),
     path("employees/", include("employees.urls")),
 ]
