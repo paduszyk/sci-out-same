@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from project.utils import admin as admin_utils
 
+from ..contributions.models import ArticleContribution
 from .forms import ArticleAdminForm, JournalAdminForm, PublisherAdminForm
 from .models import Article, Journal, Publisher
 
@@ -111,6 +112,10 @@ class JournalAdmin(admin_utils.ModelAdmin):
 class ArticleAdmin(admin_utils.ModelAdmin):
     """A class to represent admin options for the Article model."""
 
+    class ArticleContributionInline(admin.TabularInline):
+        model = ArticleContribution
+        extra = 0
+
     form = ArticleAdminForm
 
     model_accusative = _("artykuł")
@@ -136,6 +141,7 @@ class ArticleAdmin(admin_utils.ModelAdmin):
     )
     readonly_fields = ("id", "impact_factor", "points")
     autocomplete_fields = ("journal",)
+    inlines = (ArticleContributionInline,)
 
     list_display = (
         "id",
