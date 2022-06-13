@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
-from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 
@@ -19,15 +18,8 @@ class Publisher(models.Model):
         ordering = ("id",)
 
     def __str__(self):
-        return " ".join(
-            filter(
-                None,
-                [
-                    self.name,
-                    f"({self.abbreviation})" if self.abbreviation else "",
-                ],
-            )
-        )
+        abbreviation = f"({self.abbreviation})" if self.abbreviation else ""
+        return " ".join(filter(None, [self.name, abbreviation]))
 
 
 class Journal(models.Model):
@@ -46,14 +38,15 @@ class Journal(models.Model):
         _("ISSN"),
         max_length=9,
         blank=True,
-        null=True,
-        unique=True,
-        default=None,
         validators=[RegexValidator(r"[0-9]{4}-[0-9]{3}[0-9xX]")],
         error_messages={
             "invalid": _("Niepoprawny format numeru ISSN."),
             "unique": _("Istnieje już czasopismo z takim numerem ISSN."),
         },
+        help_text=_(
+            "ISSN wersji elektronicznej (e-ISSN). "
+            "Jeśli nie istnieje, proszę podać ISSN wersji drukowanej (p-ISSN)."
+        ),
     )
     ancestor = models.ForeignKey(
         to="self",
@@ -96,17 +89,12 @@ class Journal(models.Model):
         ordering = ("id",)
 
     def __str__(self):
-        return " ".join(
-            filter(
-                None,
-                [
-                    self.title,
-                    f"({self.publisher.abbreviation or self.publisher.name})"
-                    if self.publisher
-                    else "",
-                ],
-            )
-        ).strip()
+        publisher = (
+            f"({self.publisher.abbreviation or self.publisher.name})"
+            if self.publisher
+            else ""
+        )
+        return " ".join(filter(None, [self.title, publisher])).strip()
 
     def clean(self):
         if self.ancestor == self:
@@ -177,8 +165,9 @@ class Article(models.Model):
         ordering = ("id",)
 
     def __str__(self):
-        return "{}; {}.".format(
-            format_html(self.journal.abbreviation or self.title),
+        return "{}. {}; {}.".format(
+            self.title,
+            self.journal.abbreviation or self.journal.title,
             ", ".join(
                 filter(
                     None,
