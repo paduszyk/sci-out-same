@@ -12,6 +12,7 @@ def related_object_link(
     related_model,
     fk_field=None,
     content_field=None,
+    description=None,
     ordering_lookup=None,
     null_label="-",
 ):
@@ -24,7 +25,7 @@ def related_object_link(
         ordering_lookup = f"{fk_field}__{content_field}"
 
     @admin.display(
-        description=related_model._meta.verbose_name.capitalize(),
+        description=description or related_model._meta.verbose_name.capitalize(),
         ordering=ordering_lookup,
     )
     def link(obj):
