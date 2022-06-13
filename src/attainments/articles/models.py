@@ -1,8 +1,12 @@
+from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+
+from project.utils import render_link
 
 
 class Publisher(models.Model):
@@ -216,3 +220,22 @@ class Article(models.Model):
 
     def get_url(self):
         return f"https://doi.org/{self.doi}" if self.doi else self.url
+
+    @admin.display(description=_("Udziały"))
+    def get_contribution_links(self):
+        if not self.contribution_set.exists():
+            return
+
+        links = []
+        for contribution in self.contribution_set.all():
+            if contribution.is_by_employee():
+                link = render_link(
+                    "#",
+                    content=contribution.author.alias,
+                    style="text-decoration: underline;",
+                )
+            else:
+                link = contribution.author.alias
+            links.append(link)
+
+        return format_html(", ".join(links))

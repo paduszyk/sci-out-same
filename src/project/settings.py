@@ -174,7 +174,7 @@ LANGUAGE_CODE = "pl"
 
 TIME_ZONE = "Europe/Warsaw"
 
-USE_I18N = True
+USE_I18N = False
 
 USE_TZ = True
 

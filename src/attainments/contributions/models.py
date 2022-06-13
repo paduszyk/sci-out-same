@@ -97,7 +97,7 @@ class AbstractContribution(models.Model):
     @admin.display(description=_("Pracownik"), boolean=True)
     def is_by_employee(self):
         """Return if the contribution is by the author associated with Employee."""
-        return self.author.employee is not None
+        return self.author.is_employed()
 
 
 class ArticleContribution(AbstractContribution):
@@ -107,6 +107,7 @@ class ArticleContribution(AbstractContribution):
         to=Article,
         on_delete=models.CASCADE,
         verbose_name=Article._meta.verbose_name,
+        related_name="contribution_set",
     )
 
     corresponding_author = models.BooleanField(

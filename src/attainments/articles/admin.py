@@ -40,7 +40,7 @@ class JournalByAncestorFilter(admin.SimpleListFilter):
 
     def queryset(obj, request, queryset):
         if obj.value():
-            return queryset.filter(ancestor__is_null=obj.value() != "True")
+            return queryset.filter(ancestor__isnull=obj.value() != "True")
 
 
 @admin.register(Journal)
@@ -145,6 +145,7 @@ class ArticleAdmin(admin_utils.ModelAdmin):
 
     list_display = (
         "id",
+        "get_contribution_links",
         "title",
         admin_utils.related_object_link(Journal, content_field="abbreviation"),
         "year",
